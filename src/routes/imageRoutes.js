@@ -29,7 +29,7 @@ const upload = multer({
 router.post('/upload', upload.single('file'), imageController.uploadImage);
 
 // Route to retrieve an image by filename
-router.get('/images/:filename', imageController.getImage);
+router.get('/:filename', imageController.getImage);
 
 // Route to annotate an image
 router.post('/annotate', imageController.annotateImage);

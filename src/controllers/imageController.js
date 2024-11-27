@@ -13,7 +13,8 @@ exports.uploadImage = (req, res) => {
     }
     res.status(200).json({
         message: 'Image uploaded successfully',
-        imageUrl: `http://localhost:5000/api/images/${file.filename}`
+        imageUrl: `http://localhost:5000/api/images/${file.filename}`,
+        filePath: req.file.filename
     });
 };
 
@@ -30,36 +31,49 @@ exports.getImage = async (req, res) => {
     }
 };
 
-// Annotate an image (add text on image)
 exports.annotateImage = async (req, res) => {
-    const { imageId, text } = req.body;
-    const imagePath = path.join(__dirname, '../../uploads', imageId);
+    console.log('Received annotate request:', req.body);
 
-    // Check if image exists asynchronously
-    try {
-        await fs.access(imagePath);  // This checks if the file exists
-    } catch (error) {
-        return res.status(404).json({ error: 'Image not found' });
+    const { imageId, text } = req.body;
+
+    if (!imageId || !text) {
+        return res.status(400).json({ error: 'Both imageId and text are required.' });
     }
 
-    // Annotating the image with text using sharp
+    const imagePath = path.join(__dirname, '../../uploads', imageId);
+    const annotatedImagePath = path.join(__dirname, '../../uploads', `annotated-${imageId}`);
+
     try {
-        const annotatedImagePath = path.join(__dirname, '../../uploads', 'annotated-' + imageId);
+        // Check if the image exists
+        await fs.access(imagePath);
+        console.log('Image exists:', imagePath);
+
+        // Get the dimensions of the base image
+        const { width, height } = await sharp(imagePath).metadata();
+        console.log(`Image dimensions: ${width}x${height}`);
+
+        // Generate the SVG with the same dimensions as the base image
+        const svgText = `
+            <svg width="${width}" height="${height}">
+                <rect x="0" y="${height - 100}" width="${width}" height="100" fill="rgba(0, 0, 0, 0.5)" />
+                <text x="10" y="${height - 50}" font-size="40" fill="white">${text}</text>
+            </svg>
+        `;
+
+        // Annotate the image
         await sharp(imagePath)
-            .composite([{
-                input: Buffer.from(`<svg width="500" height="500">
-                              <text x="10" y="50" font-size="50" fill="white">${text}</text>
-                             </svg>`),
-                gravity: 'southeast',
-            }])
+            .composite([{ input: Buffer.from(svgText), top: 0, left: 0 }])
             .toFile(annotatedImagePath);
+
+        console.log('Image annotated successfully:', annotatedImagePath);
 
         res.status(200).json({
             message: 'Image annotated successfully',
-            imageUrl: `http://localhost:5000/api/images/annotated-${imageId}`
+            imageUrl: `http://localhost:5000/api/images/annotated-${imageId}`,
         });
-
     } catch (error) {
+        console.error('Error during annotation:', error);
         res.status(500).json({ error: 'Error annotating image', details: error.message });
     }
 };
+
