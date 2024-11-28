@@ -32,48 +32,133 @@ exports.getImage = async (req, res) => {
 };
 
 exports.annotateImage = async (req, res) => {
-    console.log('Received annotate request:', req.body);
+    const { imageId, text, x, y } = req.body;
 
-    const { imageId, text } = req.body;
-
-    if (!imageId || !text) {
-        return res.status(400).json({ error: 'Both imageId and text are required.' });
+    if (!imageId || !text || x === undefined || y === undefined) {
+        return res.status(400).json({ error: 'imageId, text, x, and y are required.' });
     }
 
     const imagePath = path.join(__dirname, '../../uploads', imageId);
     const annotatedImagePath = path.join(__dirname, '../../uploads', `annotated-${imageId}`);
 
     try {
-        // Check if the image exists
+        // Ensure the image exists
         await fs.access(imagePath);
-        console.log('Image exists:', imagePath);
 
-        // Get the dimensions of the base image
+        // Get dimensions of the image
         const { width, height } = await sharp(imagePath).metadata();
-        console.log(`Image dimensions: ${width}x${height}`);
 
-        // Generate the SVG with the same dimensions as the base image
+        // Font settings
+        const fontSize = 20; // Customize font size here
+        const textPadding = 10; // Padding around the text
+
+        // Calculate text width (estimate based on font size and text length)
+        const textWidth = text.length * (fontSize / 1.8); // Approximation for character width
+        const textHeight = fontSize + textPadding; // Height of the box
+
+        // Define the SVG with a black box dynamically sized to fit the text
         const svgText = `
-            <svg width="${width}" height="${height}">
-                <rect x="0" y="${height - 100}" width="${width}" height="100" fill="rgba(0, 0, 0, 0.5)" />
-                <text x="10" y="${height - 50}" font-size="40" fill="white">${text}</text>
-            </svg>
+        <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+            <rect 
+                x="${x}" 
+                y="${y - textHeight}" 
+                width="${textWidth + textPadding}" 
+                height="${textHeight}" 
+                fill="rgba(0, 0, 0, 0.5)" 
+            />
+            <text 
+                x="${x + textPadding / 2}" 
+                y="${y - textPadding / 2}" 
+                font-size="${fontSize}" 
+                fill="white"
+            >
+                ${text}
+            </text>
+        </svg>
         `;
 
-        // Annotate the image
+        // Composite the annotation on the image
         await sharp(imagePath)
             .composite([{ input: Buffer.from(svgText), top: 0, left: 0 }])
             .toFile(annotatedImagePath);
-
-        console.log('Image annotated successfully:', annotatedImagePath);
 
         res.status(200).json({
             message: 'Image annotated successfully',
             imageUrl: `http://localhost:5000/api/images/annotated-${imageId}`,
         });
     } catch (error) {
-        console.error('Error during annotation:', error);
+        console.error('Error annotating image:', error);
         res.status(500).json({ error: 'Error annotating image', details: error.message });
     }
 };
+
+exports.drawOnImage = async (req, res) => {
+    const { imageId, drawingData } = req.body;
+
+    if (!imageId || !drawingData) {
+        return res.status(400).json({ error: "imageId and drawingData are required." });
+    }
+
+    const imagePath = path.join(__dirname, '../../uploads', imageId);
+    const annotatedImagePath = path.join(__dirname, '../../uploads', `drawn-${imageId}`);
+
+    try {
+        // Ensure the image exists
+        await fs.access(imagePath);
+
+        // Assuming drawingData is a PNG buffer sent from the client
+        const drawingBuffer = Buffer.from(drawingData, 'base64');
+
+        // Composite the drawing onto the image
+        await sharp(imagePath)
+            .composite([{ input: drawingBuffer, blend: 'over' }])
+            .toFile(annotatedImagePath);
+
+        res.status(200).json({
+            message: "Drawing applied successfully",
+            imageUrl: `http://localhost:5000/api/images/drawn-${imageId}`,
+        });
+    } catch (error) {
+        console.error("Error applying drawing:", error);
+        res.status(500).json({ error: "Error applying drawing", details: error.message });
+    }
+};
+
+// List all uploaded images
+exports.listUploadedImages = async (req, res) => {
+    const uploadsPath = path.join(__dirname, '../../uploads');
+    try {
+        console.log('Accessing uploads path:', uploadsPath);
+        const files = await fs.readdir(uploadsPath);
+        console.log('Files found:', files);
+
+        if (files.length === 0) {
+            return res.status(404).json({ error: 'No images found' });
+        }
+
+        const imageFiles = files.filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file));
+        console.log('Filtered image files:', imageFiles);
+
+        if (imageFiles.length === 0) {
+            return res.status(404).json({ error: 'No valid image files found' });
+        }
+
+        res.status(200).json({
+            message: 'Uploaded images retrieved successfully',
+            images: imageFiles.map(file => ({
+                filename: file,
+                url: `http://localhost:5000/api/images/${file}`
+            }))
+        });
+    } catch (error) {
+        console.error('Error retrieving image list:', error);
+        res.status(500).json({ error: 'Error retrieving images', details: error.message });
+    }
+};
+
+
+
+
+
+
 

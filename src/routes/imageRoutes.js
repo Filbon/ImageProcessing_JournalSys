@@ -28,11 +28,16 @@ const upload = multer({
 // Route to upload image with multer middleware
 router.post('/upload', upload.single('file'), imageController.uploadImage);
 
+
+router.get('/images',imageController.listUploadedImages);
 // Route to retrieve an image by filename
 router.get('/:filename', imageController.getImage);
 
 // Route to annotate an image
 router.post('/annotate', imageController.annotateImage);
+
+router.post('/draw',imageController.drawOnImage);
+
 
 module.exports = router;
 
