@@ -24,7 +24,7 @@ exports.uploadImage = async (req, res) => {
             await fs.unlink(file.path); // Delete the newly uploaded file
             return res.status(200).json({
                 message: 'Duplicate image detected, reusing existing image.',
-                imageUrl: `http://localhost:5000/api/images/${imageHashes[hash]}`,
+                imageUrl: `http://kubernetes.docker.internal:30050/api/images/${imageHashes[hash]}`,
                 filePath: imageHashes[hash],
             });
         }
@@ -35,7 +35,7 @@ exports.uploadImage = async (req, res) => {
 
         res.status(200).json({
             message: 'Image uploaded successfully',
-            imageUrl: `http://localhost:5000/api/images/${imageId}`,
+            imageUrl: `http://kubernetes.docker.internal:30050/api/images/${imageId}`,
             filePath: imageId,
         });
     } catch (error) {
@@ -114,7 +114,7 @@ exports.annotateImage = async (req, res) => {
 
         res.status(200).json({
             message: 'Image annotated successfully',
-            imageUrl: `http://localhost:5000/api/images/${imageId}`,
+            imageUrl: `http://kubernetes.docker.internal:30050/api/images/${imageId}`,
         });
     } catch (error) {
         console.error('Error annotating image:', error);
@@ -169,7 +169,7 @@ exports.drawOnImage = async (req, res) => {
 
         res.status(200).json({
             message: 'Drawing applied successfully',
-            imageUrl: `http://localhost:5000/api/images/${imageId}`,
+            imageUrl: `http://kubernetes.docker.internal:30050/api/images/${imageId}`,
         });
     } catch (error) {
         console.error('Error applying drawing:', error);
@@ -202,7 +202,7 @@ exports.listUploadedImages = async (req, res) => {
             message: 'Uploaded images retrieved successfully',
             images: imageFiles.map(file => ({
                 filename: file,
-                url: `http://localhost:5000/api/images/${file}`
+                url: `http://kubernetes.docker.internal:30050/api/images/${file}`
             }))
         });
     } catch (error) {
