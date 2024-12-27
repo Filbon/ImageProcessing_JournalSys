@@ -41,7 +41,7 @@ describe('Image Controller', () => {
     test('uploadImage - success', async () => {
         // Mock the file object that would be attached to the request
         const mockFile = {
-            path: path.join(__dirname, '../../image-processing-backend/uploads/test.jpg'), // Mocked file path
+            path: path.join(__dirname, '../../uploads/test.jpg'), // Mocked file path
             filename: 'test.jpg', // Mocked file name
         };
 
@@ -93,13 +93,13 @@ describe('Image Controller', () => {
             x: 50,
             y: 50,
         };
-        const tempPath = path.join(__dirname, '../../image-processing-backend/uploads', 'temp-test.jpg');
+        const tempPath = path.join(__dirname, '../../uploads', 'temp-test.jpg');
         fs.access.mockResolvedValue();
 
         const response = await request(app).post('/annotate').send(mockBody);
 
-        expect(fs.access).toHaveBeenCalledWith(path.join(__dirname, '../../image-processing-backend/uploads', 'test.jpg'));
-        expect(fs.rename).toHaveBeenCalledWith(tempPath, path.join(__dirname, '../../image-processing-backend/uploads', 'test.jpg'));
+        expect(fs.access).toHaveBeenCalledWith(path.join(__dirname, '../../uploads', 'test.jpg'));
+        expect(fs.rename).toHaveBeenCalledWith(tempPath, path.join(__dirname, '../../uploads', 'test.jpg'));
         expect(response.status).toBe(200);
         expect(response.body).toHaveProperty('message', 'Image annotated successfully');
     });
@@ -117,7 +117,7 @@ describe('Image Controller', () => {
 
         const response = await request(app).get('/images');
 
-        expect(fs.readdir).toHaveBeenCalledWith(path.join(__dirname, '../../image-processing-backend/uploads'));
+        expect(fs.readdir).toHaveBeenCalledWith(path.join(__dirname, '../../uploads'));
         expect(response.status).toBe(200);
         expect(response.body.images).toHaveLength(2);
     });
