@@ -18,7 +18,7 @@ describe('GET /image/:filename', () => {
 
     it('should return the image file if it exists', async () => {
         const filename = 'test-image.jpg';
-        const imagePath = path.join(__dirname, '../../uploads', filename);
+        const imagePath = path.join(__dirname, '../../ImageProcessing_JournalSys/uploads', filename);
 
         // Mock the file system to simulate the file being present
         mockFs({
