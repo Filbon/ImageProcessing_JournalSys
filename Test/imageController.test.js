@@ -93,13 +93,13 @@ describe('Image Controller', () => {
             x: 50,
             y: 50,
         };
-        const tempPath = path.join(__dirname, '../../uploads', 'temp-test.jpg');
+        const tempPath = path.join(__dirname, '../../ImageProcessing_JournalSys/uploads', 'temp-test.jpg');
         fs.access.mockResolvedValue();
 
         const response = await request(app).post('/annotate').send(mockBody);
 
-        expect(fs.access).toHaveBeenCalledWith(path.join(__dirname, '../../uploads', 'test.jpg'));
-        expect(fs.rename).toHaveBeenCalledWith(tempPath, path.join(__dirname, '../../uploads', 'test.jpg'));
+        expect(fs.access).toHaveBeenCalledWith(path.join(__dirname, '../../ImageProcessing_JournalSys/uploads', 'test.jpg'));
+        expect(fs.rename).toHaveBeenCalledWith(tempPath, path.join(__dirname, '../../ImageProcessing_JournalSys/uploads', 'test.jpg'));
         expect(response.status).toBe(200);
         expect(response.body).toHaveProperty('message', 'Image annotated successfully');
     });
@@ -117,7 +117,7 @@ describe('Image Controller', () => {
 
         const response = await request(app).get('/images');
 
-        expect(fs.readdir).toHaveBeenCalledWith(path.join(__dirname, '../../uploads'));
+        expect(fs.readdir).toHaveBeenCalledWith(path.join(__dirname, '../../ImageProcessing_JournalSys/uploads'));
         expect(response.status).toBe(200);
         expect(response.body.images).toHaveLength(2);
     });
