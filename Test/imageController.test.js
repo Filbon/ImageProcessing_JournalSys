@@ -75,6 +75,8 @@ describe('Image Controller', () => {
         }));
     });
 
+
+
     test('getImage - file not found', async () => {
         fs.access.mockRejectedValue(new Error('File not found'));
 
