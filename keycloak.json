@@ -1,0 +1,11 @@
+{
+  "realm": "master",
+  "auth-server-url": "https://kc-service-deploy.app.cloud.cbh.kth.se/realms/master",
+  "ssl-required": "external",
+  "resource": "image-client",
+  "credentials": {
+    "secret": "6busubswN78M2QrtOeSrkqQH2I2QYTEf"
+  },
+  "confidential-port": 0,
+  "bearer-only": true
+}
